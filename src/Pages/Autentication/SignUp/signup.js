@@ -17,6 +17,7 @@ const SignUp = () => {
       const response = await axios.post('http://localhost:8080/api/register', { username, password });
       console.log(response.data);
       localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('authenticated', true);
       // Handle response or redirect user
     } catch (error) {
       console.error(error);
