@@ -18,6 +18,7 @@ const SignUp = () => {
       console.log(response.data);
       localStorage.setItem('user', JSON.stringify(response.data));
       localStorage.setItem('authenticated', true);
+      navigate(ROUTE_PATHS.HOME);
       // Handle response or redirect user
     } catch (error) {
       console.error(error);
