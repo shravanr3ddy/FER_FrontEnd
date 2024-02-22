@@ -2,12 +2,14 @@ import { toast } from 'react-toastify';
 
 export const ROUTE_PATHS = {
     HOME: '/',
+    LOGIN: '/login',
+    SIGNUP: '/signup',
     CAPTURE_EMOTIONS: '/cature_emotions',
     CURRENT_MATCH: '/trends_match',
     FAVOURITES: '/favourites',
     ABOUT_US: '/about',
     CONTACT: '/contact',
-    DOCUMENTATION: '/documentation'
+    LOGOUT: '/LOGOUT'
 }
 
 export const notificationsType = {

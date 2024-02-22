@@ -1,11 +1,12 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTE_PATHS } from "../../utility/constants";
 import { useLocation } from "react-router-dom";
 
 const Header = () => {
   const location = useLocation();
   const pathName = location.pathname;
+  const navigate = useNavigate();
 
   const getHeaderTitle = () => {
     if (ROUTE_PATHS.CAPTURE_EMOTIONS === pathName) {
@@ -18,8 +19,8 @@ const Header = () => {
       return <h1>Contact Us</h1>;
     } else if (ROUTE_PATHS.ABOUT_US === pathName) {
       return <h1>About Us</h1>;
-    } else if (ROUTE_PATHS.DOCUMENTATION === pathName) {
-      return <h1>Documentation</h1>;
+    } else {
+      return <h1>Logout</h1>;
     }
   };
 
@@ -39,6 +40,17 @@ const Header = () => {
     }
   };
   
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('authenticated');
+    // Or if you want to clear all local storage data
+    // localStorage.clear();
+    
+    // Redirect to login page or home page after logout
+    navigate(ROUTE_PATHS.LOGIN);
+  };
+
   return (
     <>
       <nav className="navbar navbar-expand-sm navbar-dark" style={{backgroundColor: '#fff'}}>
@@ -121,11 +133,11 @@ const Header = () => {
                   Contact
                 </Link>
               </li>
-              {/* <li className="nav-item router_links">
-              <Link to={ROUTE_PATHS.DOCUMENTATION} className="nav-link">
-                Documentation
+              <li className="nav-item router_links">
+              <Link to={ROUTE_PATHS.LOGOUT} className="nav-link text-dark" onClick={handleLogout}>
+                Logout
               </Link>
-            </li> */}
+            </li>
             </ul>
           </div>
         </div>

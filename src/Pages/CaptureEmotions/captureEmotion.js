@@ -170,59 +170,60 @@ const MatchTrends = () => {
     dismissAll();
   };
 
+  
   useEffect(() => {
-    // Dynamically load the Spotify Web Playback SDK
-    const scriptTag = document.createElement('script');
-    scriptTag.src = 'https://sdk.scdn.co/spotify-player.js';
-    scriptTag.async = true;
-    
-    document.body.appendChild(scriptTag);
-    
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
     window.onSpotifyWebPlaybackSDKReady = () => {
-      // Your player initialization code here
-      const token = '7fd7f9c6c9584290b8889ae117a3c12d'; // Replace with your access token
-      const player = new window.Spotify.Player({
-        name: 'medoly_mood',
-        getOAuthToken: cb => { cb(token); }
-      });
-      // Connect to the player!
-      player.connect();
+      const token = window.localStorage.getItem("token"); // Make sure this is correctly set
+const player = new window.Spotify.Player({
+  name: 'medoly_mood',
+  getOAuthToken: cb => { cb(token); },
+  volume: 0.5
+});
 
-      player.addListener('ready', ({ device_id }) => {
-        console.log('Ready with Device ID', device_id);
-      });
-      
-      player.addListener('not_ready', ({ device_id }) => {
-        console.log('Device ID has gone offline', device_id);
-      });
-      
-      player.addListener('player_state_changed', (state) => {
-        console.log('Player state changed:', state);
-      });
-      
-      player.addListener('initialization_error', ({ message }) => {
-        console.error('Initialization error:', message);
-      });
-      
-      player.addListener('authentication_error', ({ message }) => {
-        console.error('Authentication error:', message);
-      });
-      
-      player.addListener('account_error', ({ message }) => {
-        console.error('Account error:', message);
-      });
-      
-      player.addListener('playback_error', ({ message }) => {
-        console.error('Playback error:', message);
-      });
-      
+player.connect().then(success => {
+  if (success) {
+    console.log('The Web Playback SDK successfully connected to Spotify!');
+  }
+});
+
+player.addListener('ready', ({ device_id }) => {
+  console.log('Ready with Device ID', device_id);
+});
+
+player.addListener('not_ready', ({ device_id }) => {
+  console.log('Device ID has gone offline', device_id);
+});
+
+player.addListener('player_state_changed', (state) => {
+  console.log(state);
+});
+
+player.addListener('initialization_error', ({ message }) => {
+  console.error(message);
+});
+
+player.addListener('authentication_error', ({ message }) => {
+  console.error(message);
+});
+
+player.addListener('account_error', ({ message }) => {
+  console.error(message);
+});
+
+
     };
-
-    // Cleanup function to remove the script when the component unmounts
+  
     return () => {
-      document.body.removeChild(scriptTag);
+      document.body.removeChild(script);
     };
   }, []);
+  
+
 
   // Return the JSX structure for rendering the MatchTrends component
   return (

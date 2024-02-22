@@ -15,6 +15,7 @@ p {
   text-transform: uppercase;
   padding-left: 1rem !important;
   padding-right: 1rem !important;
+  cursor: pointer;
 }
 
 .navbar .nav-item.active {
@@ -360,3 +361,4 @@ img{
 .about_content {
   margin-top: 20px;
 }
+
