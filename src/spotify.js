@@ -10,6 +10,8 @@ const scopes = [
     "user-read-currently-playing",
     "user-read-email",
     "user-read-private",
+    "user-library-read",
+    "user-library-modify",
     // add other necessary scopes for your application
 ];
 

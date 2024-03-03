@@ -3,11 +3,13 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { ROUTE_PATHS } from "../../../utility/constants";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   // Initialize useForm hook
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  
+  const navigate = useNavigate();
+
   // Function to execute on form submit
   const onSubmit = async (data) => {
     try {

@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
+  <style>rect { fill: #000; }</style>
+  <g class="pause-btn">
+    <rect x="12" y="10" width="10" height="30"/>
+    <rect x="28" y="10" width="10" height="30"/>
+  </g>
+</svg>

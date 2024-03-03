@@ -26,6 +26,7 @@
     "react-router-dom": "^6.8.1",
     "react-scripts": "5.0.1",
     "react-spinners": "^0.13.8",
+    "react-spotify-web-playback": "^0.14.3",
     "react-toastify": "^9.1.1",
     "react-webcam": "^7.2.0",
     "stream": "^0.0.2",

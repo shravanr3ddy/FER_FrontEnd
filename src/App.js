@@ -33,7 +33,11 @@ import { useState } from "react";
 // import Login from "./Pages/auth/Login";
 import { setClientToken } from "./spotify";
 import Login from "./Pages/Autentication/Login/login";
+import SpotifyLogin from "./Pages/auth/spotifyLogin";
 import SignUp from "./Pages/Autentication/SignUp/signup";
+import Spotify from "./Pages/Spotify/spotify";
+import SubHeader from "./Components/SubHeader/subheader";
+
 
 function App() {
   // Get the current location and path from the useLocation hook
@@ -41,23 +45,20 @@ function App() {
   const pathName = location.pathname;
   const authenticated = Boolean(localStorage.getItem("authenticated"));
 
-  // Define a state variable for storing favourites data
-  const [favouritesData, setFavouritesData] = useState([]);
-
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(window.localStorage.getItem("spotify_token"));
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
+    const token = window.localStorage.getItem("spotify_token");
     const hash = window.location.hash;
     window.location.hash = "";
     if (!token && hash) {
       const _token = hash.split("&")[0].split("=")[1];
-      window.localStorage.setItem("token", _token);
+      window.localStorage.setItem("spotify_token", _token);
       setToken(_token);
-      setClientToken(_token);
+        setClientToken(_token);
     } else {
       setToken(token);
-      setClientToken(token);
+        setClientToken(token);
     }
   }, []);
 debugger;
@@ -72,37 +73,47 @@ debugger;
       </Routes>
     ) : (
       <>
-        <Header />
-        <div
-          className={`${
-            pathName === ROUTE_PATHS.HOME ? "" : "custom_container"
-          }`}
-        >
-          <Routes>
-            {/* // Define the routes for each page component */}
+        {pathName === ROUTE_PATHS.SPOTIFY_AUTH && !token ? (
+          <>
+          <Header />
+          <SpotifyLogin />
+          <Footer />
+          </>
+        ) : (
+          <>
+            <Header />
+            <SubHeader />
+            <div
+              className={`${
+                pathName === ROUTE_PATHS.HOME ? "" : "custom_container"
+              }`}
+            >
+              <Routes>
+                {/* // Define the routes for each page component */}
 
-            <Route path={ROUTE_PATHS.HOME} element={<Home />} />
-            <Route exact path={ROUTE_PATHS.CONTACT} element={<Contact />} />
-            <Route exact path={ROUTE_PATHS.ABOUT_US} element={<About />} />
-            <Route
-              exact
-              path={ROUTE_PATHS.CURRENT_MATCH}
-              element={<Trends setFavouritesData={setFavouritesData} />}
-            />
-            <Route
-              exact
-              path={ROUTE_PATHS.CAPTURE_EMOTIONS}
-              element={<MatchTrends />}
-            />
-            <Route
-              exact
-              path={ROUTE_PATHS.FAVOURITES}
-              element={<Favourites favouritesData={favouritesData} />}
-            />
-            <Route path="*" element={<Navigate to={ROUTE_PATHS.HOME} replace />} />
-          </Routes>
-        </div>
-        <Footer />
+                <Route path={ROUTE_PATHS.HOME} element={<Home />} />
+                <Route exact path={ROUTE_PATHS.CONTACT} element={<Contact />} />
+                <Route exact path={ROUTE_PATHS.ABOUT_US} element={<About />} />
+                {/* <Route
+                  exact
+                  path={ROUTE_PATHS.CURRENT_MATCH}
+                  element={<Trends setFavouritesData={setFavouritesData} />}
+                /> */}
+                <Route
+                  exact
+                  path={ROUTE_PATHS.CAPTURE_EMOTIONS}
+                  element={<MatchTrends />}
+                />
+                <Route exact path={ROUTE_PATHS.SPOTIFY} element={token ? <Spotify /> : <Navigate to={ROUTE_PATHS.SPOTIFY_AUTH} replace />} />
+                <Route
+                  path="*"
+                  element={<Navigate to={ROUTE_PATHS.HOME} replace />}
+                />
+              </Routes>
+            </div>
+            <Footer />
+          </>
+        )}
       </>
     )
   );

@@ -2,7 +2,7 @@ import React from "react";
 import { loginEndpoint } from "../../spotify";
 import "./Login.css";
 
-export default function Login() {
+export default function SpotifyLogin() {
   return (
     <div className="login-page">
       <img
