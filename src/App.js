@@ -61,7 +61,7 @@ function App() {
         setClientToken(token);
     }
   }, []);
-debugger;
+  
   return (
     // Render the Header and Footer components along with the Routes
 

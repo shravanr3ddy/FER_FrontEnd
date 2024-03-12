@@ -1,5 +1,5 @@
 // Import necessary libraries and components from their respective packages
-import React, { useState, useRef, useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import Notifications from "../../Components/Notifications/notification";
 // Import necessary constants from utility/constants
@@ -7,6 +7,7 @@ import {
   notificationsType,
   dismissAll,
   skeleton_loader,
+  ROUTE_PATHS,
 } from "../../utility/constants";
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
@@ -23,6 +24,7 @@ import {
 } from "../../reducers/trendsSlice";
 import cloneDeep from "clone-deep";
 import Webcam from "react-webcam";
+import { Link, useNavigate } from "react-router-dom";
 
 // Define an array of acceptable file types for the FileUploader
 const fileTypes = ["JPG", "PNG", "GIF", "JPEG"];
@@ -33,10 +35,10 @@ const MatchTrends = () => {
   const [matchTrend, setMatchTrend] = useState(false);
   const [inputDisable, setInputDisable] = useState(false);
 
-    // Declare a reference to the Webcam component
+  // Declare a reference to the Webcam component
   const webcamRef = useRef(null);
 
-      // Declare a state variable to control the visibility of the webcam
+  // Declare a state variable to control the visibility of the webcam
   const [showWebcam, setShowWebcam] = useState(false);
 
   // Retrieve necessary state variables from the Redux store
@@ -51,19 +53,20 @@ const MatchTrends = () => {
   // Initialize the useDispatch hook
   const dispatch = useDispatch();
 
-    // Function to capture an image from the webcam
-    const capture = React.useCallback(() => {
-      const imageSrc = webcamRef.current.getScreenshot();
-      setFile(imageSrc);
-      dispatch(setBase64(imageSrc));
-      setShowWebcam(false); // Hide the webcam after capturing the image
-    }, [webcamRef, setFile]);
+  const navigate = useNavigate();
 
-      // Function to toggle the webcam visibility
+  // Function to capture an image from the webcam
+  const capture = React.useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setFile(imageSrc);
+    dispatch(setBase64(imageSrc));
+    setShowWebcam(false); // Hide the webcam after capturing the image
+  }, [webcamRef, setFile]);
+
+  // Function to toggle the webcam visibility
   const handleWebcam = () => {
     setShowWebcam(!showWebcam);
   };
-
 
   // Function to update the favorite status of a trend
   const updateFavoriteStatus = (trend, isFavorite) => {
@@ -107,40 +110,57 @@ const MatchTrends = () => {
 
   // Function to handle the file change event
   const handleChange = async (f) => {
-      
     setFile(f);
     dispatch(setBase64(await toBase64(f)));
   };
 
   // Function to handle the match trend button click
   const matchTrendClicked = async () => {
-    if (base64 != null && inputText.length !== 0) {
+    if (base64 != null) {
       setIsLoading(true);
       dismissAll();
-
+  
       // Create a FormData object and append the necessary data
       const bodyFormData = new FormData();
-      bodyFormData.append("file", file);
-      bodyFormData.append("text", inputText);
-
+  
+      // Check if `file` is a base64 string
+      if (typeof file === 'string' && file.startsWith('data:')) {
+        // Extract content type and base64 data from the string
+        const matches = file.match(/^data:(.+);base64,(.*)$/);
+        if (matches.length !== 3) {
+          return Notifications({
+            type: notificationsType.ERROR,
+            message: 'Invalid base64 string.',
+          });
+        }
+  
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        const blob = b64toBlob(base64Data, contentType);
+  
+        // Append the binary data as a file named "file"
+        bodyFormData.append("file", blob);
+      } else {
+        // Assume `file` is already a File or Blob object
+        bodyFormData.append("file", file);
+      }
+  
       try {
         // Send a POST request to the backend
         const response = await axios({
           method: "post",
-          url: "https://www.fashiontrendcheck.com/findrelativeimages",
+          url: "http://127.0.0.1:5000/predict-emotion",
           headers: {
             "Content-Type": "multipart/form-data",
           },
           data: bodyFormData,
         });
-
+  
         const resultTrends = response.data;
-        const trendList = await getTrendList(resultTrends);
-        if (trendList.length > 0) {
-          setIsLoading(false);
-          dispatch(setMatchTrendData(trendList));
-          setInputDisable(true);
-        }
+        
+        const emotion = resultTrends?.predicted_emotion;
+        navigate(`${ROUTE_PATHS.SPOTIFY}?emotion=${emotion}`);
+        resetTrend();
       } catch (error) {
         console.error(error);
       }
@@ -151,11 +171,26 @@ const MatchTrends = () => {
       });
     }
   };
-
-  // Function to generate a trend list from the API response
-  const getTrendList = async (resultTrends) => {
-
-  };
+  
+  // Utility function to convert base64 data to Blob
+  function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    const blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+  }
+  
 
   // Function to reset the trend state variables and dispatch actions
   const resetTrend = () => {
@@ -170,60 +205,59 @@ const MatchTrends = () => {
     dismissAll();
   };
 
-  
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
     document.body.appendChild(script);
-  
+
     window.onSpotifyWebPlaybackSDKReady = () => {
       const token = window.localStorage.getItem("token"); // Make sure this is correctly set
-const player = new window.Spotify.Player({
-  name: 'medoly_mood',
-  getOAuthToken: cb => { cb(token); },
-  volume: 0.5
-});
+      const player = new window.Spotify.Player({
+        name: "medoly_mood",
+        getOAuthToken: (cb) => {
+          cb(token);
+        },
+        volume: 0.5,
+      });
 
-player.connect().then(success => {
-  if (success) {
-    console.log('The Web Playback SDK successfully connected to Spotify!');
-  }
-});
+      player.connect().then((success) => {
+        if (success) {
+          console.log(
+            "The Web Playback SDK successfully connected to Spotify!"
+          );
+        }
+      });
 
-player.addListener('ready', ({ device_id }) => {
-  console.log('Ready with Device ID', device_id);
-});
+      player.addListener("ready", ({ device_id }) => {
+        console.log("Ready with Device ID", device_id);
+      });
 
-player.addListener('not_ready', ({ device_id }) => {
-  console.log('Device ID has gone offline', device_id);
-});
+      player.addListener("not_ready", ({ device_id }) => {
+        console.log("Device ID has gone offline", device_id);
+      });
 
-player.addListener('player_state_changed', (state) => {
-  console.log(state);
-});
+      player.addListener("player_state_changed", (state) => {
+        console.log(state);
+      });
 
-player.addListener('initialization_error', ({ message }) => {
-  console.error(message);
-});
+      player.addListener("initialization_error", ({ message }) => {
+        console.error(message);
+      });
 
-player.addListener('authentication_error', ({ message }) => {
-  console.error(message);
-});
+      player.addListener("authentication_error", ({ message }) => {
+        console.error(message);
+      });
 
-player.addListener('account_error', ({ message }) => {
-  console.error(message);
-});
-
-
+      player.addListener("account_error", ({ message }) => {
+        console.error(message);
+      });
     };
-  
+
     return () => {
       document.body.removeChild(script);
     };
   }, []);
-  
-
 
   // Return the JSX structure for rendering the MatchTrends component
   return (
@@ -231,10 +265,13 @@ player.addListener('account_error', ({ message }) => {
       {base64 != null ? (
         // If base64 image data is available, display the image and input field
         <div className="drag_drop">
-          <img className="CAPTURE_EMOTIONS_img" alt="tred_match_img" src={base64} />
+          <img
+            className="CAPTURE_EMOTIONS_img"
+            alt="tred_match_img"
+            src={base64}
+          />
         </div>
-      ) : 
-      showWebcam ? (
+      ) : showWebcam ? (
         <div className="drag_drop webcam-container">
           <Webcam
             audio={false}
@@ -243,13 +280,15 @@ player.addListener('account_error', ({ message }) => {
             className="webcam"
           />
           <div>
-          <button onClick={capture} className="btn custom_primary_color btn-lg">
-            Capture
-          </button>
+            <button
+              onClick={capture}
+              className="btn custom_primary_color btn-lg"
+            >
+              Capture
+            </button>
           </div>
         </div>
-      ) : 
-      (
+      ) : (
         // If base64 image data is not available, display the file uploader and input field
         <div className="drag_drop">
           <FileUploader
@@ -259,7 +298,7 @@ player.addListener('account_error', ({ message }) => {
           />
         </div>
       )}
-    
+
       {/* // Render Match Trend and Reset buttons */}
       <div className="container d-flex justify-content-center mb-5 mt-5">
         <button
@@ -274,7 +313,7 @@ player.addListener('account_error', ({ message }) => {
           style={{ marginRight: 10 }}
           onClick={matchTrendClicked}
         >
-          Upload a Image
+          Send
         </button>
         <button
           className="btn custom_primary_color btn-lg"
@@ -309,20 +348,24 @@ player.addListener('account_error', ({ message }) => {
                         {trend.title}
                       </h5>
                       <div className="d-flex justify-content-between">
-                      <p className="card-text">{trend.price}</p>
-                      {trend.favorite ? (
-                        <img
-                          src={"img/icons8-heart-ios-16-glyph/icons8-heart-90.png"}
-                          className="react-icon heart-react-icon"
-                          onClick={() => fillHeartClicked(trend)}
-                        />
-                      ) : (
-                        <img
-                          src={"img/icons8-favorite-ios-16-glyph/icons8-favorite-90.png"}
-                          className="react-icon"
-                          onClick={() => emptyHeartClicked(trend)}
-                        />
-                      )}
+                        <p className="card-text">{trend.price}</p>
+                        {trend.favorite ? (
+                          <img
+                            src={
+                              "img/icons8-heart-ios-16-glyph/icons8-heart-90.png"
+                            }
+                            className="react-icon heart-react-icon"
+                            onClick={() => fillHeartClicked(trend)}
+                          />
+                        ) : (
+                          <img
+                            src={
+                              "img/icons8-favorite-ios-16-glyph/icons8-favorite-90.png"
+                            }
+                            className="react-icon"
+                            onClick={() => emptyHeartClicked(trend)}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -331,6 +374,34 @@ player.addListener('account_error', ({ message }) => {
             })
           )}
         </div>
+      </div>
+      <div className="d-flex justify-content-center emotions mb-5">
+        <Link
+          to={`${ROUTE_PATHS.SPOTIFY}?emotion=happy`}
+          className="happy_emotion mx-3"
+        >
+          <img
+            src="./img/HappyImage.webp"
+            alt="Happy"
+            className={"happy_img"}
+          />{" "}
+        </Link>
+        <Link
+          to={`${ROUTE_PATHS.SPOTIFY}?emotion=sad`}
+          className="happy_emotion mx-3"
+        >
+          <img src="./img/SadImage.webp" alt="Sad" className={"sad_img"} />
+        </Link>
+        <Link
+          to={`${ROUTE_PATHS.SPOTIFY}?emotion=angry`}
+          className="happy_emotion mx-3"
+        >
+          <img
+            src="./img/AngryImage.webp"
+            alt="Angry"
+            className={"angry_img"}
+          />{" "}
+        </Link>
       </div>
     </>
   );

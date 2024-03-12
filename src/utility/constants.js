@@ -21,10 +21,10 @@ export const notificationsType = {
   INFORAMTION: "INFORMATION",
 };
 
-const musicMoods = {
-  sad: ["Pop", "Disco", "Workout", "Dance/Electronic", "Indie"],
-  happy: ["Disney", "Spotify CLASSICS", "GLOW", "New Releases", "Discover"],
-  angry: ["R&B", "Mood", "Rock", "Francophone", "K-pop"],
+export const musicMoods = {
+  sad: ["Pop", "Disco", "Workout", "Dance/Electronic", "Indie", "Pop", "Charts", "Decades"],
+  happy: ["Disney", "Spotify CLASSICS", "GLOW", "New Releases", "Discover", "Frequency"],
+  angry: ["R&B", "Mood", "Rock", "Francophone", "K-pop", "Hip-Hop", "Latin"],
 };
 
 export const musicGenres = {

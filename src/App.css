@@ -363,7 +363,8 @@ img{
 }
 
 .ButtonRSWP ._ControlsButtonRSWP ._3hmsj svg {
-  display: none; /* Hide the original SVG */
+  display: none; 
+  /* Hide the original SVG */
 }
 
 
@@ -376,6 +377,14 @@ img{
   background-image: url('/public/img/play_button.svg'); /* Path to your new SVG file */
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+div > button[aria-label="Previous"] {
+  display: none;
+}
+
+div button[aria-label="Next"] {
+  display: none !important;
 }
 
 [aria-label="Pause"]::after {
@@ -391,6 +400,7 @@ img{
 
 [aria-label="Next"]::after {
   display: none;
+  visibility: hidden;
   content: ''; /* Required property for pseudo-elements */
   display: block;
   width: 100%; /* Set to the desired width */
@@ -403,7 +413,7 @@ img{
 
 [aria-label="Previous"]::after {
   content: ''; /* Required property for pseudo-elements */
-  display: block;
+  display: none;
   width: 100%; /* Set to the desired width */
   height: 70%; /* Set to the desired height */
   background-image: url('/public/img/previous_button.svg'); /* Path to your new SVG file */
@@ -411,6 +421,14 @@ img{
   background-repeat: no-repeat;
 }
 
+.next_button {
+  height: 30px;
+  transform: rotate(180deg);
+}
+
+.previous_button {
+  height: 30px;
+}
 /* 
 [aria-label="Previous"] {
   background-image: url('/public/img/computer-icons-download-arrow-previous-button.jpg') !important;
@@ -497,4 +515,20 @@ img{
 .spotify-playlists hr {
   margin: 70px 0px 0px;
   border-color: #636363;
+}
+
+.happy_img {
+  height: 200px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+.sad_img {
+  height: 200px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+.angry_img {
+  height: 200px;
+  border-radius: 100px;
+  cursor: pointer;
 }
