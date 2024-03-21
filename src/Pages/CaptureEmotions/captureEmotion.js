@@ -29,7 +29,7 @@ import { Link, useNavigate } from "react-router-dom";
 // Define an array of acceptable file types for the FileUploader
 const fileTypes = ["JPG", "PNG", "GIF", "JPEG"];
 
-const MatchTrends = () => {
+const CaptureEmotions = () => {
   // Declare state variables and their setters for file, matchTrend, and inputDisable
   const [file, setFile] = useState(null);
   const [matchTrend, setMatchTrend] = useState(false);
@@ -115,7 +115,7 @@ const MatchTrends = () => {
   };
 
   // Function to handle the match trend button click
-  const matchTrendClicked = async () => {
+  const captureEmotionClicked = async () => {
     if (base64 != null) {
       setIsLoading(true);
       dismissAll();
@@ -311,7 +311,7 @@ const MatchTrends = () => {
         <button
           className="btn custom_primary_color btn-lg"
           style={{ marginRight: 10 }}
-          onClick={matchTrendClicked}
+          onClick={captureEmotionClicked}
         >
           Send
         </button>
@@ -407,5 +407,5 @@ const MatchTrends = () => {
   );
 };
 
-// Export the MatchTrends component
-export default MatchTrends;
+// Export the CaptureEmotions component
+export default CaptureEmotions;
