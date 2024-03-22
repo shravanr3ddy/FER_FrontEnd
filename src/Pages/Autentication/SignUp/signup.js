@@ -44,26 +44,29 @@ const SignUp = () => {
           <input
             type="text"
             placeholder="Enter your username"
+            className={"mb-2"}
             {...register("username", { required: true })}
           />
-          {errors.username && <span>This field is required</span>}
+          {errors.username && <span className={"error"}>This field is required</span>}
 
           <input
             type="password"
             placeholder="Create a password"
+            className={"mb-2"}
             {...register("password", { required: true, minLength: 6 })}
           />
-          {errors.password && errors.password.type === "required" && <span>This field is required</span>}
-          {errors.password && errors.password.type === "minLength" && <span>Password must have at least 6 characters</span>}
+          {errors.password && errors.password.type === "required" && <span className={"error"}>This field is required</span>}
+          {errors.password && errors.password.type === "minLength" && <span className={"error"}>Password must have at least 6 characters</span>}
 
           <input
             type="password"
             placeholder="Confirm your password"
+            className={"mb-2"}
             {...register("confirmPassword", { 
               validate: (value) => value === watch('password') || "The passwords do not match"
             })}
           />
-          {errors.confirmPassword && <span>{errors.confirmPassword.message}</span>}
+          {errors.confirmPassword && <span className={"error"}>{errors.confirmPassword.message}</span>}
 
           <input type="submit" className="button" value="Signup" />
         </form>

@@ -11,7 +11,7 @@ function Notifications(props) {
       {message}</span> <br /> {errorStack}</div>,
       {
         position: 'top-right',
-        autoClose: false,
+        autoClose: true,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,

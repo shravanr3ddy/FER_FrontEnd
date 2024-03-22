@@ -532,3 +532,8 @@ div button[aria-label="Next"] {
   border-radius: 100px;
   cursor: pointer;
 }
+
+.error {
+  font-size: 14px;
+  color: #d00909;
+}
