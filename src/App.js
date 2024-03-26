@@ -13,6 +13,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 
 // Import additional page components
@@ -42,6 +43,7 @@ import SubHeader from "./Components/SubHeader/subheader";
 function App() {
   // Get the current location and path from the useLocation hook
   const location = useLocation();
+  const navigate = useNavigate();
   const pathName = location.pathname;
   const authenticated = Boolean(localStorage.getItem("authenticated"));
 
@@ -55,7 +57,8 @@ function App() {
       const _token = hash.split("&")[0].split("=")[1];
       window.localStorage.setItem("spotify_token", _token);
       setToken(_token);
-        setClientToken(_token);
+      setClientToken(_token);
+      navigate(ROUTE_PATHS.SPOTIFY);
     } else {
       setToken(token);
         setClientToken(token);
