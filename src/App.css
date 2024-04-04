@@ -537,3 +537,9 @@ div button[aria-label="Next"] {
   font-size: 14px;
   color: #d00909;
 }
+
+.fav_icon {
+  display: flex;
+  width: 20% !important;
+  float: right;
+}

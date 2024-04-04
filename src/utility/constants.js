@@ -105,6 +105,10 @@ export const musicGenres = {
   },
 };
 
+export const msToMinutes = (ms) => {
+  return (ms / 60000).toPrecision(2);
+}
+
 export const dismissAll = () => toast.dismiss();
 
 export const skeleton_loader = [1, 2, 3, 4];

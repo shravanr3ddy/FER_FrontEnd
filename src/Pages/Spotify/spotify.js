@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SpotifyPlayer from "react-spotify-web-playback";
 import axios from "axios";
-import { musicGenres, ROUTE_PATHS, musicMoods } from "../../utility/constants";
+import { musicGenres, ROUTE_PATHS, musicMoods, msToMinutes } from "../../utility/constants";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Spotify = () => {
@@ -9,7 +9,7 @@ const Spotify = () => {
 
   const [searchParams] = useSearchParams();
   const emotion = searchParams.get("emotion");
-   
+
   const [categories, setCategories] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [tracks, setTracks] = useState([]);
@@ -17,12 +17,35 @@ const Spotify = () => {
   const [trackUrl, setTrackUrl] = useState("");
   const [currentView, setCurrentView] = useState("categories");
   const [breadcrumbs, setBreadcrumbs] = useState([
-    { name: "Caregories", view: "categories" },
+    { name: " Categories", view: "categories" },
   ]);
   const [isPlaying, setIsPlaying] = useState(false);
   const navigate = useNavigate();
+  const [likedTracks, setLikedTracks] = useState([]);
 
   useEffect(() => {
+
+    const fetchSavedTracks = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.spotify.com/v1/me/tracks",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        let savedVideos = [];
+        response?.data?.items.forEach((item) => {
+          savedVideos.push(item.track.id);
+        })
+        setLikedTracks(savedVideos);
+      } catch (e) {
+        debugger;
+      }
+    };
+    fetchSavedTracks();
+
     const fetchCategories = async () => {
       try {
         const response = await axios.get(
@@ -38,7 +61,6 @@ const Spotify = () => {
 
         // Check if there is an emotion query param and filter categories
         if (emotion && musicMoods[emotion]) {
-           
           const filteredCategories = items.filter((category) =>
             musicMoods[emotion].includes(category?.name)
           );
@@ -80,7 +102,7 @@ const Spotify = () => {
       setCurrentView("playlists");
       // Update breadcrumbs to include the new category
       setBreadcrumbs([
-        { name: "Caregories", view: "categories" },
+        { name: " Categories", view: "categories" },
         { name: categoryName, view: "playlists" },
       ]);
     } catch (error) {
@@ -101,8 +123,8 @@ const Spotify = () => {
       setTracks(response.data.items);
       setCurrentView("tracks");
       // Update breadcrumbs to include the new playlist
-      setBreadcrumbs(prevBreadcrumbs => [
-        ...prevBreadcrumbs.filter(crumb => crumb.view !== "tracks"), // Keep all but the 'tracks' breadcrumb
+      setBreadcrumbs((prevBreadcrumbs) => [
+        ...prevBreadcrumbs.filter((crumb) => crumb.view !== "tracks"), // Keep all but the 'tracks' breadcrumb
         { name: playlistName, view: "tracks" },
       ]);
 
@@ -115,7 +137,6 @@ const Spotify = () => {
   };
 
   const handleBreadcrumbClick = (view) => {
-     
     setCurrentView(view);
     setBreadcrumbs(
       breadcrumbs.slice(0, breadcrumbs.findIndex((b) => b.view === view) + 1)
@@ -216,10 +237,53 @@ const Spotify = () => {
     rightButton: <CustomNextButton onClick={handleNextClicked} />,
   };
 
+  const saveTrackClicked = async (id) => {
+    try {
+      const response = await axios.put(
+        `https://api.spotify.com/v1/me/tracks`,
+        {
+          ids: [id] // Assuming 'id' is the track ID you want to save
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Handle response
+      setLikedTracks((currentLikedTracks) => [...currentLikedTracks, id]);
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }  
+
+  const removeSavedTrackClicked = async (id) => {
+    try {
+      const response = await axios.delete(
+        `https://api.spotify.com/v1/me/tracks?ids=${id}`, // Pass ID as a query parameter
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Ensure your token variable is correctly defined and accessible
+          },
+        }
+      );
+      // Handle response
+      setLikedTracks(currentLikedTracks => 
+        currentLikedTracks.filter(trackId => trackId !== id)
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+      // Handle error for no token provided or other issues
+    }
+  };
+  
+
   return (
     <>
       <div className="container mt-4">
-        <nav aria-label="breadcrumb" style={{width: "50%"}}>
+        <nav aria-label="breadcrumb" style={{ width: "50%" }}>
           <ol className="breadcrumb mx-3">
             {breadcrumbs.map((crumb, index) => (
               <li
@@ -232,11 +296,7 @@ const Spotify = () => {
                 {index === breadcrumbs.length - 1 ? (
                   crumb?.name
                 ) : (
-                  <a
-                    href="#"
-                  >
-                    {crumb?.name}
-                  </a>
+                  <a href="#">{crumb?.name}</a>
                 )}
               </li>
             ))}
@@ -254,7 +314,9 @@ const Spotify = () => {
                     <div
                       key={category.id}
                       className={`col-2 mb-4`}
-                      onClick={() => fetchPlaylists(category.id, category?.name)}
+                      onClick={() =>
+                        fetchPlaylists(category.id, category?.name)
+                      }
                     >
                       <div className="item">
                         <img src={`${category.icons[0].url}`} />
@@ -284,7 +346,6 @@ const Spotify = () => {
             <div className="list">
               <div className="row g-4">
                 {playlists.map((playlist) => {
-                   
                   return (
                     <div
                       key={playlist.id}
@@ -316,11 +377,12 @@ const Spotify = () => {
             <div className="list">
               <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 {tracks.map((trackItem, index) => {
+                  debugger;
                   return (
                     <div key={index} className="col-2 mb-4">
                       <div
                         className="item"
-                        onClick={() => trackClicked(trackItem.track.uri)}
+                        style={{cursor: "default"}}
                       >
                         <img src={`${trackItem.track?.album?.images[0].url}`} />
                         <div
@@ -329,6 +391,8 @@ const Spotify = () => {
                               ? "pause"
                               : "play"
                           }`}
+                          style={{cursor: "pointer"}}
+                          onClick={() => trackClicked(trackItem.track.uri)}
                         >
                           <span
                             className={`${
@@ -339,6 +403,27 @@ const Spotify = () => {
                           ></span>
                         </div>
                         <h4> {trackItem.track?.name}</h4>
+                        <h4> Album: {trackItem.track?.album?.name}</h4>
+                        <h4> Duration: {msToMinutes(trackItem.track?.duration_ms)} mints</h4>
+                        { likedTracks.includes(trackItem.track.id) 
+                        ? 
+                        ( <img
+                          src={
+                            "img/icons8-heart-ios-16-glyph/icons8-heart-90.png"
+                          }
+                          className="react-icon heart-react-icon fav_icon"
+                          onClick={() => removeSavedTrackClicked(trackItem.track.id)}
+                        />)
+                        : 
+                        (
+                          <img
+                          src={
+                            "img/icons8-favorite-ios-16-glyph/icons8-favorite-90.png"
+                          }
+                          className="react-icon heart-react-icon fav_icon"
+                          onClick={() => saveTrackClicked(trackItem.track.id)}
+                        />
+                        )}
                       </div>
                     </div>
                   );
