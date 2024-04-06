@@ -1,8 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SpotifyPlayer from "react-spotify-web-playback";
 import axios from "axios";
-import { musicGenres, ROUTE_PATHS, musicMoods, msToMinutes } from "../../utility/constants";
+import {
+  musicGenres,
+  ROUTE_PATHS,
+  musicMoods,
+  msToMinutes,
+  SpotifyTabs,
+  notificationsType,
+} from "../../utility/constants";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Notifications from "../../Components/Notifications/notification";
 
 const Spotify = () => {
   const token = window.localStorage.getItem("spotify_token");
@@ -15,76 +23,82 @@ const Spotify = () => {
   const [tracks, setTracks] = useState([]);
   const [trackUris, setTrackUris] = useState([]);
   const [trackUrl, setTrackUrl] = useState("");
-  const [currentView, setCurrentView] = useState("categories");
   const [breadcrumbs, setBreadcrumbs] = useState([
     { name: " Categories", view: "categories" },
   ]);
   const [isPlaying, setIsPlaying] = useState(false);
   const navigate = useNavigate();
   const [likedTracks, setLikedTracks] = useState([]);
+  const [likedTracksIds, setLikedTrackIds] = useState([]);
+  const [activeTab, setActiveTab] = useState(searchParams.get("active"));
+  const [currentView, setCurrentView] = useState(activeTab === SpotifyTabs.CATEGORIES ? "categories" : "tracks");
+  
+  const fetchSavedTracks = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.spotify.com/v1/me/tracks",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      let savedVideos = [];
+      response?.data?.items.forEach((item) => {
+        savedVideos.push(item.track.id);
+      });
+      setLikedTracks(response.data.items);
+      setLikedTrackIds(savedVideos);
+      if(activeTab === SpotifyTabs.LIKED_MUSIC) {
+        setTracks(response.data.items);
+        const uris = response.data.items.map((item) => item?.track?.uri);
+        setTrackUris(uris);
+      }
+    } catch (e) {
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.spotify.com/v1/browse/categories",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const items = response.data.categories.items;
+
+      // Check if there is an emotion query param and filter categories
+      if (emotion && musicMoods[emotion]) {
+        const filteredCategories = items.filter((category) =>
+          musicMoods[emotion].includes(category?.name)
+        );
+        setCategories(filteredCategories);
+      } else {
+        setCategories(items);
+      }
+    } catch (error) {
+      if (error.message === "Request failed with status code 401") {
+        // Clear user data from localStorage
+        localStorage.removeItem("user");
+        localStorage.removeItem("authenticated");
+        localStorage.removeItem("spotify_token");
+        window.location.reload();
+        // Or if you want to clear all local storage data
+        // localStorage.clear();
+
+        // Redirect to login page or home page after logout
+        navigate(ROUTE_PATHS.LOGIN);
+      }
+      console.error("Error fetching categories from Spotify:", error);
+    }
+  };
 
   useEffect(() => {
-
-    const fetchSavedTracks = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.spotify.com/v1/me/tracks",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        let savedVideos = [];
-        response?.data?.items.forEach((item) => {
-          savedVideos.push(item.track.id);
-        })
-        setLikedTracks(savedVideos);
-      } catch (e) {
-        debugger;
-      }
-    };
-    fetchSavedTracks();
-
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.spotify.com/v1/browse/categories",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const items = response.data.categories.items;
-
-        // Check if there is an emotion query param and filter categories
-        if (emotion && musicMoods[emotion]) {
-          const filteredCategories = items.filter((category) =>
-            musicMoods[emotion].includes(category?.name)
-          );
-          setCategories(filteredCategories);
-        } else {
-          setCategories(items);
-        }
-      } catch (error) {
-        if (error.message === "Request failed with status code 401") {
-          // Clear user data from localStorage
-          localStorage.removeItem("user");
-          localStorage.removeItem("authenticated");
-          localStorage.removeItem("spotify_token");
-          window.location.reload();
-          // Or if you want to clear all local storage data
-          // localStorage.clear();
-
-          // Redirect to login page or home page after logout
-          navigate(ROUTE_PATHS.LOGIN);
-        }
-        console.error("Error fetching categories from Spotify:", error);
-      }
-    };
-
+    fetchSavedTracks();    
     fetchCategories();
   }, [token]);
 
@@ -242,7 +256,7 @@ const Spotify = () => {
       const response = await axios.put(
         `https://api.spotify.com/v1/me/tracks`,
         {
-          ids: [id] // Assuming 'id' is the track ID you want to save
+          ids: [id], // Assuming 'id' is the track ID you want to save
         },
         {
           headers: {
@@ -250,13 +264,18 @@ const Spotify = () => {
           },
         }
       );
+      fetchSavedTracks();
       // Handle response
-      setLikedTracks((currentLikedTracks) => [...currentLikedTracks, id]);
+      setLikedTrackIds((currentLikedTracks) => [...currentLikedTracks, id]);
       console.log(response.data);
+      Notifications({
+        type: notificationsType.SUCCESS,
+        message: 'Added to Liked Songs.',
+      });
     } catch (error) {
       console.error(error);
     }
-  }  
+  };
 
   const removeSavedTrackClicked = async (id) => {
     try {
@@ -269,170 +288,221 @@ const Spotify = () => {
         }
       );
       // Handle response
-      setLikedTracks(currentLikedTracks => 
-        currentLikedTracks.filter(trackId => trackId !== id)
+      setLikedTrackIds((currentLikedTracks) =>
+        currentLikedTracks.filter((trackId) => trackId !== id)
       );
+      fetchSavedTracks();
       console.log(response.data);
+      Notifications({
+        type: notificationsType.SUCCESS,
+        message: 'Removed from Liked Songs.',
+      });
     } catch (error) {
       console.error(error);
       // Handle error for no token provided or other issues
     }
   };
-  
 
+  const spotifyTabClicked = (activeTab) => {
+    setActiveTab(activeTab);
+    navigate(`/spotify?emotion=${emotion}&active=${activeTab}`, { replace: true });
+    if(activeTab === SpotifyTabs.LIKED_MUSIC) {
+      setCurrentView("tracks");
+      setTracks(likedTracks);
+      const uris = likedTracks.map((item) => item?.track?.uri);
+      setTrackUris(uris);
+    } else {
+      setBreadcrumbs([
+        { name: " Categories", view: "categories" },
+      ])
+      setCurrentView("categories");
+      setTracks(tracks);
+      const uris = tracks.map((item) => item?.track?.uri);
+      setTrackUris(uris);
+    }
+  }
+  
   return (
     <>
-      <div className="container mt-4">
-        <nav aria-label="breadcrumb" style={{ width: "50%" }}>
-          <ol className="breadcrumb mx-3">
-            {breadcrumbs.map((crumb, index) => (
-              <li
-                key={index}
-                className={`breadcrumb-item ${
-                  index === breadcrumbs.length - 1 ? "active" : ""
-                }`}
-                onClick={() => handleBreadcrumbClick(crumb.view)}
-              >
-                {index === breadcrumbs.length - 1 ? (
-                  crumb?.name
-                ) : (
-                  <a href="#">{crumb?.name}</a>
-                )}
+      <div className="flex">
+        <div className="col-md-3">
+          <nav class="sidebar-navigation">
+            <ul>
+              <li className={`${activeTab === SpotifyTabs.CATEGORIES ? "active" : ""}`} onClick={() => spotifyTabClicked(SpotifyTabs.CATEGORIES)}>
+                <i className="fa fa-music"></i>
+                <span className="tooltip">All Categories</span>
               </li>
-            ))}
-          </ol>
-        </nav>
-      </div>
-      {currentView === "categories" && (
-        <div className="container spotify-playlists">
-          <h1>Spotify Music Categories</h1>
-          <ul>
-            <div className="list">
-              <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                {categories.map((category) => {
-                  return (
-                    <div
-                      key={category.id}
-                      className={`col-2 mb-4`}
-                      onClick={() =>
-                        fetchPlaylists(category.id, category?.name)
-                      }
-                    >
-                      <div className="item">
-                        <img src={`${category.icons[0].url}`} />
-                        <div className="play">
-                          <span className="fa fa-play"></span>
-                        </div>
-                        <h4>{category?.name}</h4>
-                        <p>
-                          {musicGenres[category?.name]?.description?.replace(
-                            /<[^>]*>/g,
-                            ""
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </ul>
+              <li className={`${activeTab === SpotifyTabs.LIKED_MUSIC ? "active" : ""}`} onClick={() => spotifyTabClicked(SpotifyTabs.LIKED_MUSIC)}>
+                <i className="fa fa-heart"></i>
+                <span className="tooltip">Liked Songs</span>
+              </li>
+            </ul>
+          </nav>
         </div>
-      )}
-      {currentView === "playlists" && (
-        <div className="container spotify-playlists">
-          <h2>Playlists</h2>
-          <ul>
-            <div className="list">
-              <div className="row g-4">
-                {playlists.map((playlist) => {
-                  return (
-                    <div
-                      key={playlist.id}
-                      className={`col-sm-6 col-md-4 mb-4 ${
-                        playlists?.length === 2 ? "col-lg-6" : "col-lg-2"
-                      }`}
-                      onClick={() => fetchTracks(playlist.id, playlist?.name)}
-                    >
-                      <div className="card item">
-                        <img src={`${playlist.images[0].url}`} />
-                        <div className="play">
-                          <span className="fa fa-play"></span>
-                        </div>
-                        <h4> {playlist?.name}</h4>
-                        <p>{playlist.description?.replace(/<[^>]*>/g, "")}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </ul>
-        </div>
-      )}
-      {currentView === "tracks" && (
-        <div className="container spotify-playlists">
-          <h3>Tracks</h3>
-          <ul>
-            <div className="list">
-              <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                {tracks.map((trackItem, index) => {
-                  debugger;
-                  return (
-                    <div key={index} className="col-2 mb-4">
-                      <div
-                        className="item"
-                        style={{cursor: "default"}}
-                      >
-                        <img src={`${trackItem.track?.album?.images[0].url}`} />
+        <div>
+          {activeTab === SpotifyTabs.CATEGORIES ? 
+          <div className="container mt-4">
+            <nav aria-label="breadcrumb" style={{ width: "50%" }}>
+              <ol className="breadcrumb mx-3">
+                {breadcrumbs.map((crumb, index) => (
+                  <li
+                    key={index}
+                    className={`breadcrumb-item ${
+                      index === breadcrumbs.length - 1 ? "active" : ""
+                    }`}
+                    onClick={() => handleBreadcrumbClick(crumb.view)}
+                  >
+                    {index === breadcrumbs.length - 1 ? (
+                      crumb?.name
+                    ) : (
+                      <a href="#">{crumb?.name}</a>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          </div> : null}
+          {currentView === "categories" && (
+            <div className="container spotify-playlists">
+              <h1>Spotify Music Categories</h1>
+              <ul>
+                <div className="list">
+                  <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                    {categories.map((category) => {
+                      return (
                         <div
-                          className={`${
-                            trackItem.track?.uri === trackUris[0] && isPlaying
-                              ? "pause"
-                              : "play"
-                          }`}
-                          style={{cursor: "pointer"}}
-                          onClick={() => trackClicked(trackItem.track.uri)}
+                          key={category.id}
+                          className={`col-2 mb-4`}
+                          onClick={() =>
+                            fetchPlaylists(category.id, category?.name)
+                          }
                         >
-                          <span
-                            className={`${
-                              trackItem.track?.uri === trackUris[0] && isPlaying
-                                ? "fa fa-pause"
-                                : "fa fa-play"
-                            }`}
-                          ></span>
+                          <div className="item">
+                            <img src={`${category.icons[0].url}`} />
+                            <div className="play">
+                              <span className="fa fa-play"></span>
+                            </div>
+                            <h4>{category?.name}</h4>
+                            <p>
+                              {musicGenres[
+                                category?.name
+                              ]?.description?.replace(/<[^>]*>/g, "")}
+                            </p>
+                          </div>
                         </div>
-                        <h4> {trackItem.track?.name}</h4>
-                        <h4> Album: {trackItem.track?.album?.name}</h4>
-                        <h4> Duration: {msToMinutes(trackItem.track?.duration_ms)} mints</h4>
-                        { likedTracks.includes(trackItem.track.id) 
-                        ? 
-                        ( <img
-                          src={
-                            "img/icons8-heart-ios-16-glyph/icons8-heart-90.png"
-                          }
-                          className="react-icon heart-react-icon fav_icon"
-                          onClick={() => removeSavedTrackClicked(trackItem.track.id)}
-                        />)
-                        : 
-                        (
-                          <img
-                          src={
-                            "img/icons8-favorite-ios-16-glyph/icons8-favorite-90.png"
-                          }
-                          className="react-icon heart-react-icon fav_icon"
-                          onClick={() => saveTrackClicked(trackItem.track.id)}
-                        />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </ul>
             </div>
-          </ul>
+          )}
+          {currentView === "playlists" && (
+            <div className="container spotify-playlists">
+              <h2>Playlists</h2>
+              <ul>
+                <div className="list">
+                  <div className="row g-4">
+                    {playlists.map((playlist) => {
+                      return (
+                        <div
+                          key={playlist.id}
+                          className={`col-sm-6 col-md-4 mb-4 ${
+                            playlists?.length === 2 ? "col-lg-6" : "col-lg-2"
+                          }`}
+                          onClick={() =>
+                            fetchTracks(playlist.id, playlist?.name)
+                          }
+                        >
+                          <div className="card item">
+                            <img src={`${playlist.images[0].url}`} />
+                            <div className="play">
+                              <span className="fa fa-play"></span>
+                            </div>
+                            <h4> {playlist?.name}</h4>
+                            <p>
+                              {playlist.description?.replace(/<[^>]*>/g, "")}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </ul>
+            </div>
+          )}
+          {currentView === "tracks" && (
+            <div className="container spotify-playlists">
+              <h3>Tracks</h3>
+              <ul>
+                <div className="list">
+                  <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                    {tracks.map((trackItem, index) => {
+                      return (
+                        <div key={index} className="col-2 mb-4">
+                          <div className="item" style={{ cursor: "default" }}>
+                            <img
+                              src={`${trackItem.track?.album?.images[0].url}`}
+                            />
+                            <div
+                              className={`${
+                                trackItem.track?.uri === trackUris[0] &&
+                                isPlaying
+                                  ? "pause"
+                                  : "play"
+                              }`}
+                              style={{ cursor: "pointer" }}
+                              onClick={() => trackClicked(trackItem.track.uri)}
+                            >
+                              <span
+                                className={`${
+                                  trackItem.track?.uri === trackUris[0] &&
+                                  isPlaying
+                                    ? "fa fa-pause"
+                                    : "fa fa-play"
+                                }`}
+                              ></span>
+                            </div>
+                            <h4> {trackItem.track?.name}</h4>
+                            <h4> Album: {trackItem.track?.album?.name}</h4>
+                            <h4>
+                              {" "}
+                              Duration:{" "}
+                              {msToMinutes(trackItem.track?.duration_ms)} mints
+                            </h4>
+                            {likedTracksIds.includes(trackItem.track.id) ? (
+                              <img
+                                src={
+                                  "img/icons8-heart-ios-16-glyph/icons8-heart-90.png"
+                                }
+                                className="react-icon heart-react-icon fav_icon"
+                                onClick={() =>
+                                  removeSavedTrackClicked(trackItem.track.id)
+                                }
+                              />
+                            ) : (
+                              <img
+                                src={
+                                  "img/icons8-favorite-ios-16-glyph/icons8-favorite-90.png"
+                                }
+                                className="react-icon heart-react-icon fav_icon"
+                                onClick={() =>
+                                  saveTrackClicked(trackItem.track.id)
+                                }
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+      </div>
       <div
         style={{
           position: "fixed", // Use fixed positioning

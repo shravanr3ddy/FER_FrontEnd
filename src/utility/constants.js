@@ -112,3 +112,8 @@ export const msToMinutes = (ms) => {
 export const dismissAll = () => toast.dismiss();
 
 export const skeleton_loader = [1, 2, 3, 4];
+
+export const SpotifyTabs = {
+  CATEGORIES: "categories",
+  LIKED_MUSIC: "liked_music"
+}

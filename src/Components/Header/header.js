@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ROUTE_PATHS } from "../../utility/constants";
+import { ROUTE_PATHS, SpotifyTabs } from "../../utility/constants";
 import { useLocation } from "react-router-dom";
 import { window } from "globalthis/implementation";
 
@@ -76,7 +76,7 @@ const Header = () => {
                   ROUTE_PATHS.SPOTIFY === pathName ? "active" : ""
                 }`}
               >
-                <Link to={ROUTE_PATHS.SPOTIFY} className={`nav-link text-dark ${
+                <Link to={`${ROUTE_PATHS.SPOTIFY}?active=${SpotifyTabs.CATEGORIES}`} className={`nav-link text-dark ${
                   ROUTE_PATHS.SPOTIFY === pathName ? "active" : ""
                 }`}>
                   Spotify

@@ -21,7 +21,7 @@ import Trends from "./Pages/Trends/trends";
 import MatchTrends from "./Pages/CaptureEmotions/captureEmotion";
 
 // Import constants for route paths
-import { ROUTE_PATHS } from "./utility/constants";
+import { ROUTE_PATHS, SpotifyTabs } from "./utility/constants";
 
 // Import the Favourites component
 import Favourites from "./Components/Favourites/Favourites";
@@ -58,7 +58,7 @@ function App() {
       window.localStorage.setItem("spotify_token", _token);
       setToken(_token);
       setClientToken(_token);
-      navigate(ROUTE_PATHS.SPOTIFY);
+      navigate(`${ROUTE_PATHS.SPOTIFY}?active=${SpotifyTabs.CATEGORIES}`);
     } else {
       setToken(token);
         setClientToken(token);

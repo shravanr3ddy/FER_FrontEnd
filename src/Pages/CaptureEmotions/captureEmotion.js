@@ -8,6 +8,7 @@ import {
   dismissAll,
   skeleton_loader,
   ROUTE_PATHS,
+  SpotifyTabs,
 } from "../../utility/constants";
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
@@ -159,7 +160,7 @@ const CaptureEmotions = () => {
         const resultTrends = response.data;
         
         const emotion = resultTrends?.predicted_emotion;
-        navigate(`${ROUTE_PATHS.SPOTIFY}?emotion=${emotion}`);
+        navigate(`${ROUTE_PATHS.SPOTIFY}?emotion=${emotion}&active=${SpotifyTabs.CATEGORIES}`);
         resetTrend();
       } catch (error) {
         console.error(error);
@@ -377,7 +378,7 @@ const CaptureEmotions = () => {
       </div>
       <div className="d-flex justify-content-center emotions mb-5">
         <Link
-          to={`${ROUTE_PATHS.SPOTIFY}?emotion=happy`}
+          to={`${ROUTE_PATHS.SPOTIFY}?emotion=happy&active=${SpotifyTabs.CATEGORIES}`}
           className="happy_emotion mx-3"
         >
           <img
@@ -387,13 +388,13 @@ const CaptureEmotions = () => {
           />{" "}
         </Link>
         <Link
-          to={`${ROUTE_PATHS.SPOTIFY}?emotion=sad`}
+          to={`${ROUTE_PATHS.SPOTIFY}?emotion=sad&active=${SpotifyTabs.CATEGORIES}`}
           className="happy_emotion mx-3"
         >
           <img src="./img/SadImage.webp" alt="Sad" className={"sad_img"} />
         </Link>
         <Link
-          to={`${ROUTE_PATHS.SPOTIFY}?emotion=angry`}
+          to={`${ROUTE_PATHS.SPOTIFY}?emotion=angry&active=${SpotifyTabs.CATEGORIES}`}
           className="happy_emotion mx-3"
         >
           <img
