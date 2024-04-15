@@ -11,15 +11,15 @@ const About = () => {
               <h1>What We Do</h1>
               {/* About Text */}
               <p className="about_content">
-                Welcome to MelodyMood, where technology meets music to craft
+                Welcome to MeloMood, where technology meets music to craft
                 your personal soundtrack. Our mission is to revolutionize the
                 way you experience music by aligning it with your emotions. With
-                MelodyMood, your expressions become the key to discovering music
+                MeloMood, your expressions become the key to discovering music
                 that truly speaks to you.
               </p>
 
               <p className="about_content">
-                At MelodyMood, we harness the power of Facial Expression
+                At MeloMood, we harness the power of Facial Expression
                 Recognition (FER) to understand and predict your mood from a
                 photo or live webcam feed. Our platform goes beyond the usual
                 music discovery methods by offering a unique, emotionally
@@ -38,7 +38,7 @@ const About = () => {
 
               <p className="about_content">
                 We appreciate the profound relationship between music and mood.
-                That's why we've designed MelodyMood to be a personal DJ for
+                That's why we've designed MeloMood to be a personal DJ for
                 your feelings, ensuring that the right tunes accompany every
                 moment of your life. Save your emotion-matched playlists and
                 revisit them whenever you need a sonic companion that truly
@@ -46,7 +46,7 @@ const About = () => {
               </p>
 
               <p className="about_content">
-                At MelodyMood, we're passionate about delivering a harmonious
+                At MeloMood, we're passionate about delivering a harmonious
                 blend of tech and tunes to elevate your daily life. Join us on
                 this innovative journey where your emotions cue the perfect
                 playlist, creating a harmonious experience that's tailored just

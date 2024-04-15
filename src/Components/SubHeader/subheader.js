@@ -26,7 +26,7 @@ const SubHeader = () => {
     
       const getHeaderCaptions = () => {
         if (ROUTE_PATHS.CAPTURE_EMOTIONS === pathName) {
-          return "Upload your photo or use your webcam to let MelodyMood capture your current emotion. Our sophisticated FER system will analyze your facial expression and curate a music playlist that aligns with your mood.";
+          return "Upload your photo or use your webcam to let MeloMood capture your current emotion. Our sophisticated FER system will analyze your facial expression and curate a music playlist that aligns with your mood.";
         } else if (ROUTE_PATHS.FAVOURITES === pathName) {
           return "Curate your trend haven. Save, access, and share your favorites.";
         } else if (ROUTE_PATHS.CURRENT_MATCH === pathName) {

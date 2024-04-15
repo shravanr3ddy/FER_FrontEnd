@@ -67,7 +67,7 @@ const Home = () => {
             {renderCarouselItem(
               0,
               "Discover Music That Resonates With Your Feelings",
-              "Capture your expression with a simple click or upload a photo to let MelodyMood read your emotions. Our advanced FER technology analyzes your facial expressions and instantly curates a playlist to harmonize with your current mood. Immerse yourself in a musical experience that truly understands you."
+              "Capture your expression with a simple click or upload a photo to let MeloMood read your emotions. Our advanced FER technology analyzes your facial expressions and instantly curates a playlist to harmonize with your current mood. Immerse yourself in a musical experience that truly understands you."
             )}
             {/* {renderCarouselItem(
               1,

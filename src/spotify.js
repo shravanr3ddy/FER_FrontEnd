@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const authEndpoint = "https://accounts.spotify.com/authorize?";
-const clientId = "3497491b9d854b62a4ab62c97d061acc";
+const clientId = "d832afdd018b4c3b8933f93a3e0da932";
+// 3497491b9d854b62a4ab62c97d061acc
 const redirectUri = "http://localhost:3000";
 const scopes = [
     "streaming",

@@ -27,7 +27,7 @@ const Header = () => {
       <nav className="navbar navbar-expand-sm navbar-dark" style={{backgroundColor: '#fff'}}>
         <div className="container-fluid">
           <Link to={ROUTE_PATHS.HOME} className="navbar-brand router_links project_name">
-            MelodyMood
+            MeloMood
           </Link>
           <button
             className="navbar-toggler"
