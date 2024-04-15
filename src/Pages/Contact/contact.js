@@ -11,8 +11,11 @@ const Contact = () => {
 
   const onSubmit = (data) => {
     // Sending email
+    // PHj1F-kft9qic7ZXN
+    // service_4io5ppz
+    // template_c3hqfok
     emailjs
-      .send("service_4io5ppz", "template_c3hqfok", data, "PHj1F-kft9qic7ZXN")
+      .send("service_5gwphjn", "template_j5t96cm", data, "jcXReO4F6btRTJP33")
       .then(
         (result) => {
           alert("Message sent successfully");
@@ -35,11 +38,11 @@ const Contact = () => {
                 <div className="card-body">
                   <h4>Get In Touch</h4>
                   <h4>Address</h4>
-                  <p>Your address</p>
+                  <p>1400 Washington Ave, Albany, NY 12222</p>
                   <h4>Email</h4>
-                  <p>yourcollege.com</p>
+                  <p>samhithauppalapati4@gmail.com</p>
                   <h4>Phone</h4>
-                  <p>college phone</p>
+                  <p>(518) 442-3300</p>
                 </div>
               </div>
             </div>
